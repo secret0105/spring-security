@@ -33,3 +33,6 @@ spring:
     suffix: .html
     charset: utf-8
     template-loader-path: classpath:/templates/
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

@@ -1,5 +1,6 @@
 package com.xiaoshazhou.config;
 
+import com.xiaoshazhou.service.MyUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +11,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.io.PipedReader;
 
 /**
  * TODO
@@ -28,6 +31,9 @@ public class FormLoginConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private MyAuthenticationSuccessHandler myAuthenticationSuccessHandler;
+
+    @Autowired
+    private MyUserDetailsService myUserDetailsService;
 
     /**
      * 登录逻辑认证：登录url  跳转url  接收登录参数等
@@ -52,14 +58,18 @@ public class FormLoginConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/login.html", "login").permitAll()//不需要登录就能访问的页面
-                .antMatchers("/", "bizone", "biztwo")
+                .antMatchers("/", "/bizone", "/biztwo")
                 .hasAnyAuthority("ROLE_user", "ROLE_admin")
-                .antMatchers("/syslog", "/sysuser")
-                .hasAnyRole("admin")
-//                .antMatchers("/syslog")//等价于上面
-//                .hasAnyAuthority("sys:log")
-//                .antMatchers("/sysuser")
-//                .hasAnyAuthority("sys:user")
+                /*.antMatchers("/syslog", "/sysuser")
+                .hasAnyRole("admin")*/
+                /*.antMatchers("/syslog")//等价于上面
+                .hasAnyAuthority("/syslog")
+                .antMatchers("/sysuser")
+                .hasAnyAuthority("/sysuser")*/
+                .antMatchers("/syslog")//等价于上面
+                .hasAuthority("/syslog")
+                .antMatchers("/sysuser")
+                .hasAuthority("/sysuser")
                 .anyRequest()
                 .authenticated()
                 .and()
@@ -86,7 +96,7 @@ public class FormLoginConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
 
-        auth.inMemoryAuthentication()
+        auth./*inMemoryAuthentication()
                 .withUser("user")
                 .password(passwordEncoder().encode("123456"))
                 .roles("user")
@@ -94,8 +104,9 @@ public class FormLoginConfig extends WebSecurityConfigurerAdapter {
                 .withUser("admin")
                 .password(passwordEncoder().encode("123456"))
 //                .authorities("sys:log","sys:user")
-                .roles("admin")
-                .and()
+                .roles("admin")*/
+                userDetailsService(myUserDetailsService)
+//                .and()
                 .passwordEncoder(passwordEncoder());//配置bCrypt加密
     }
 
