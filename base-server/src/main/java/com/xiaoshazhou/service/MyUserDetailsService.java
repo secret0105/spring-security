@@ -47,12 +47,14 @@ public class MyUserDetailsService implements UserDetailsService {
         //查询用户角色对应的权限列表
         List<String> authorities = myUserDetailsServiceMapper.findAuthorityByRoleCodes(roleCodes);
 
+        //将数据库中的menu字段加上"ROLE_",与config中保持一致
         roleCodes = roleCodes.stream()
                 .map(rc -> "ROLE_"+rc)
                 .collect(Collectors.toList());
 
         authorities.addAll(roleCodes);
 
+        //使用AuthorityUtils工具类将普通的list转变为程序需求的GrantedAuthority
         myUserDetails.setAuthorities(AuthorityUtils.commaSeparatedStringToAuthorityList(String.join(",",authorities)));
         return myUserDetails;
     }

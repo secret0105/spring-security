@@ -58,20 +58,23 @@ public class FormLoginConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/login.html", "login").permitAll()//不需要登录就能访问的页面
-                .antMatchers("/", "/bizone", "/biztwo")
-                .hasAnyAuthority("ROLE_user", "ROLE_admin")
+                //动态鉴权
+                .anyRequest().access("@rbacService.hasPermission(request,authentication)")
+                //注释的为静态方式，现使用动态方式
+                /*.antMatchers("/", "/bizone", "/biztwo")
+                .hasAnyAuthority("ROLE_user", "ROLE_admin")*/
                 /*.antMatchers("/syslog", "/sysuser")
                 .hasAnyRole("admin")*/
                 /*.antMatchers("/syslog")//等价于上面
                 .hasAnyAuthority("/syslog")
                 .antMatchers("/sysuser")
                 .hasAnyAuthority("/sysuser")*/
-                .antMatchers("/syslog")//等价于上面
+                /*.antMatchers("/syslog")//等价于上面
                 .hasAuthority("/syslog")
                 .antMatchers("/sysuser")
                 .hasAuthority("/sysuser")
                 .anyRequest()
-                .authenticated()
+                .authenticated()*/
                 .and()
                 //设置session多端登录策略
                 .sessionManagement()
