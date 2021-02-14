@@ -1,0 +1,35 @@
+server:
+  port: 8888
+  #cookie的安全设置
+#  servlet:
+#    session:
+#      cookie:
+#        http-only: true
+#        secure: true
+  #Session会话超时设置
+#  servlet:
+#    session:
+#      timeout: 15m
+
+spring:
+  #配置security
+  #使用formLogin时需要注释掉
+  #Session会话超时设置第二种方式
+  session:
+    timeout: 15m
+  security:
+    loginType: JSON
+#    user:
+#      name: admin
+#      password: admin
+  datasource:
+    username: root
+    url: jdbc:mysql://localhost:3306/zj?useSSL=false
+    password: 123456
+    driver-class-name: com.mysql.jdbc.Driver
+
+  freemarker:
+    cache: false
+    suffix: .html
+    charset: utf-8
+    template-loader-path: classpath:/templates/
