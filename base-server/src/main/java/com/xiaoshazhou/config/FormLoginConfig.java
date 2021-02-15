@@ -11,7 +11,11 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
+import javax.annotation.Resource;
+import javax.sql.DataSource;
 import java.io.PipedReader;
 
 /**
@@ -35,6 +39,12 @@ public class FormLoginConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private MyUserDetailsService myUserDetailsService;
 
+    @Resource
+    private DataSource dataSource;
+
+    @Resource
+    private MyLogoutSuccessHandler myLogoutSuccessHandler;
+
     /**
      * 登录逻辑认证：登录url  跳转url  接收登录参数等
      * <p>
@@ -45,7 +55,19 @@ public class FormLoginConfig extends WebSecurityConfigurerAdapter {
      */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable()//关闭跨域攻击
+        http.logout()
+                .logoutSuccessUrl("/login")//退出成功后的跳转页面，该页面需要在下方加上非登录即可访问权限
+                .logoutUrl("/logout")//退出的url 与前端的要一致
+                .deleteCookies("JSESSIONID")//删除某个cookie 可以使用多次
+//                .logoutSuccessHandler(myLogoutSuccessHandler)//自定义配置处理器 与logoutSuccessUrl冲突 上面的会生效
+                .and()
+                .rememberMe()
+                .tokenRepository(persistentTokenRepository())//将RememberMe token信息存储到数据库中
+                /*.rememberMeParameter("remember-me")//前端传过来的参数名称 需要与前端保持一致
+                .rememberMeCookieName("rememberMe")//浏览器中的cookie名称
+                .tokenValiditySeconds(2*24*60*60)//有效期*/
+                .and().
+                csrf().disable()//关闭跨域攻击
                 .formLogin()//开启formLogin认证
                 .loginPage("/login.html")//设置登录页面
                 .loginProcessingUrl("/login")//处理认证请求的路径，也就是html表单上action的值
@@ -108,7 +130,8 @@ public class FormLoginConfig extends WebSecurityConfigurerAdapter {
                 .password(passwordEncoder().encode("123456"))
 //                .authorities("sys:log","sys:user")
                 .roles("admin")*/
-                userDetailsService(myUserDetailsService)
+                //从数据库中动态获取
+                        userDetailsService(myUserDetailsService)
 //                .and()
                 .passwordEncoder(passwordEncoder());//配置bCrypt加密
     }
@@ -127,5 +150,17 @@ public class FormLoginConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().antMatchers("/css/**", "/js/**", "/font/**", "/img/**");
+    }
+
+    /**
+     * 将token 信息持久化到数据库中
+     * @return
+     */
+    @Bean
+    public PersistentTokenRepository persistentTokenRepository() {
+
+        JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
+        tokenRepository.setDataSource(dataSource);
+        return tokenRepository;
     }
 }
