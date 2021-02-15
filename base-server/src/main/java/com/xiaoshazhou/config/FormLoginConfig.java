@@ -1,5 +1,6 @@
 package com.xiaoshazhou.config;
 
+import com.xiaoshazhou.MyCaptchaFilter;
 import com.xiaoshazhou.service.MyUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -11,6 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
@@ -45,6 +47,9 @@ public class FormLoginConfig extends WebSecurityConfigurerAdapter {
     @Resource
     private MyLogoutSuccessHandler myLogoutSuccessHandler;
 
+    @Resource
+    private MyCaptchaFilter myCaptchaFilter;
+
     /**
      * 登录逻辑认证：登录url  跳转url  接收登录参数等
      * <p>
@@ -55,7 +60,8 @@ public class FormLoginConfig extends WebSecurityConfigurerAdapter {
      */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.logout()
+        http.addFilterBefore(myCaptchaFilter,UsernamePasswordAuthenticationFilter.class)//配置验证码过滤器在用户密码验证前
+                .logout()
                 .logoutSuccessUrl("/login")//退出成功后的跳转页面，该页面需要在下方加上非登录即可访问权限
                 .logoutUrl("/logout")//退出的url 与前端的要一致
                 .deleteCookies("JSESSIONID")//删除某个cookie 可以使用多次
@@ -79,7 +85,7 @@ public class FormLoginConfig extends WebSecurityConfigurerAdapter {
                 .failureHandler(myAuthenticationFailureHandler)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/login.html", "login").permitAll()//不需要登录就能访问的页面
+                .antMatchers("/login.html", "login","/kaptcha").permitAll()//不需要登录就能访问的页面,需要放行验证码的请求
                 //动态鉴权
                 .anyRequest().access("@rbacService.hasPermission(request,authentication)")
                 //注释的为静态方式，现使用动态方式

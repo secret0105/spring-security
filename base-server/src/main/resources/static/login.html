@@ -11,15 +11,26 @@
         用户名：<input type="text" name="username" id="username"><br>
         密码：<input type="password" name="password" id="password"><br>
 <!--        <input type="submit">-->
+        验证码：<input type="text" name="captchaCode" id="captchaCode">
+        <img src="/kaptcha" width="100px" height="40px" id="kaptcha">
         <input type="button" onclick="login()" value="登录">
         <label><input type="checkbox" id="rememberMe">记住密码</label>
     </form>
 </body>
 
 <script type="text/javascript">
+
+    //页面加载 获取图片 点击图片刷新
+    window.onload = function () {
+        var image = document.getElementById("kaptcha");
+        image.onclick=function () {
+            image.src = "/kaptcha?"+Math.floor(new Range()*100)
+        }
+    };
     function login() {
         var username = $("#username").val();
         var password = $("#password").val();
+        var captcha = $("#captchaCode").val();
         var rememberMe = $("#rememberMe").is(":checked")
 
         //简单判断
@@ -34,7 +45,8 @@
             data: {
                 "username": username,
                 "password": password,
-                "remember-me":rememberMe
+                "remember-me":rememberMe,
+                "captchaCode":captcha
             },
             success: function (json) {
                 if (json.isok) {
